@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
@@ -25,6 +25,22 @@ async function run () {
             const cursor = serviceCollection.find(query)
             const services = await cursor.toArray()
             res.send(services)
+        })
+
+        //Get 3 Data For Display On Home Page
+        app.get('/homeservices', async(req, res) => {
+            const query = {}
+            const cursor = serviceCollection.find(query)
+            const services = await cursor.limit(3).toArray()
+            res.send(services)
+        })
+
+        //Get Single Data of services
+        app.get('/service/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)}
+            const service = await serviceCollection.findOne(query)
+            res.send(service)
         })
     }
     finally{
