@@ -28,6 +28,14 @@ async function run () {
             res.send(result);
         })
 
+        //Add New Service
+        app.post('/services', async(req, res) => {
+            const service = req.body;
+            const result = await serviceCollection.insertOne(service)
+            res.send(result)
+        })
+
+        //Get Single Data for Update Review
         app.get('/reviews/:id', async(req, res) => {
             const id = req.params.id;
             const query = {_id: ObjectId(id)}
