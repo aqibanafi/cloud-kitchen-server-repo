@@ -101,6 +101,31 @@ async function run () {
             const result = await reviewCollection.deleteOne(query)
             res.send(result)
         })
+
+        app.get('/reviews', async(req, res) => {
+            let query = {};
+            if(req.query.serviceid) {
+                query = {
+                    serviceid: req.query.serviceid
+                }
+            }
+            const cursor = reviewCollection.find(query)
+            const reviews = await cursor.toArray()
+            res.send(reviews)
+        })
+
+        app.get('/allreviews', async(req, res) => {
+            const query = {}
+            if(req.query.serviceid) {
+                query = {
+                    serviceid: req.query.serviceid
+                }
+            }
+            console.log(req.query)
+            const cursor = reviewCollection.find(query)
+            const reviews = await cursor.toArray()
+            res.send(reviews);
+        })
     }
     finally{
 
