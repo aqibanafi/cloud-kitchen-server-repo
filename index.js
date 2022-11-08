@@ -32,6 +32,7 @@ function verifyJWT(req, res, next) {
         next();
     })
 }
+//Mongodb Run Function
 async function run() {
     try {
         const serviceCollection = client.db('superkitch').collection('services')
@@ -39,14 +40,14 @@ async function run() {
 
 
         //Create Reviews 
-        app.post('/reviews', verifyJWT, async (req, res) => {
+        app.post('/reviews', async (req, res) => {
             const review = req.body;
             const result = await reviewCollection.insertOne(review)
             res.send(result);
         })
 
         //Add New Service
-        app.post('/services', verifyJWT, async (req, res) => {
+        app.post('/services', async (req, res) => {
             const service = req.body;
             const result = await serviceCollection.insertOne(service)
             res.send(result)
@@ -78,7 +79,7 @@ async function run() {
         //Get 3 Data For Display On Home Page
         app.get('/homeservices', async (req, res) => {
             const query = {}
-            const cursor = serviceCollection.find(query)
+            const cursor = serviceCollection.find(query).sort({_id: -1})
             const services = await cursor.limit(3).toArray()
             res.send(services)
         })
@@ -140,7 +141,7 @@ async function run() {
                     serviceid: req.query.serviceid
                 }
             }
-            const cursor = reviewCollection.find(query).sort({date: -1})
+            const cursor = reviewCollection.find(query).sort('date', -1)
             const reviews = await cursor.toArray()
             res.send(reviews)
         })
