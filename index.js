@@ -84,13 +84,13 @@ async function run() {
         })
 
         //Review Get By Email Query
-        app.get('/myreviews', async (req, res) => {
+        app.get('/myreviews', verifyJWT, async (req, res) => {
 
-            // const decoded = req.decoded;
+            const decoded = req.decoded;
+            if(decoded.email !== req.query.email) {
+                res.status(403).send({message: 'unauthorized access'})
+            }
 
-            // if (decoded.email !== req.query.email) {
-            //     res.status(403).send({ message: 'unauthorized access' })
-            // }
             let query = {};
             if (req.query.email) {
                 query = {
@@ -140,7 +140,6 @@ async function run() {
                     serviceid: req.query.serviceid
                 }
             }
-            const date = query.date;
             const cursor = reviewCollection.find(query).sort({date: -1})
             const reviews = await cursor.toArray()
             res.send(reviews)
