@@ -44,12 +44,47 @@ async function run () {
             res.send(services)
         })
 
+        //Review Get By Email Query
+        app.get('/myreviews', async(req, res) => {
+            let query = {};
+            if(req.query.email) {
+                query = {
+                    email: req.query.email
+                }
+            }
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews)
+        })
+
         //Get Single Data of services
         app.get('/service/:id', async(req, res) => {
             const id = req.params.id;
             const query = {_id: ObjectId(id)}
             const service = await serviceCollection.findOne(query)
             res.send(service)
+        })
+
+        //Update User Review
+        app.patch('/myreviews/:id', async(req, res) => {
+            const id = req.params.id;
+            const review = req.body;
+            const query = {_id: ObjectId(id)}
+            const updatedDoc = {
+                $set: {
+                    message: review.message
+                }
+            }
+            const result = await reviewCollection.updateOne(query, updatedDoc)
+            res.send(result)
+        })
+
+        //Delete Review
+        app.delete('/reviews/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)}
+            const result = await reviewCollection.deleteOne(query)
+            res.send(result)
         })
     }
     finally{
