@@ -18,7 +18,16 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run () {
     try {
         const serviceCollection = client.db('superkitch').collection('services')
+        const reviewCollection = client.db('superkitch').collection('reviews')
         
+
+        //Create Reviews 
+        app.post('/reviews', async(req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review)
+            res.send(result);
+        })
+
         //Get All Services To Display Data
         app.get('/services', async(req, res) => {
             const query = {}
