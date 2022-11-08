@@ -16,37 +16,37 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 //Function JWT
-function verifyJWT (req, res, next) {
+function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
 
-    if(!authHeader) {
-        return res.status(401).send({message: 'unauthorized access'});
+    if (!authHeader) {
+        return res.status(401).send({ message: 'unauthorized access' });
     }
     const token = authHeader.split(' ')[1];
 
-    jwt.verift(token, process.env.ACCESS_TOKEN_SECRET, function (error, decoded) {
-        if(error) {
-            return res.status(403).send({message: 'Forbidden access'})
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden access' })
         }
         req.decoded = decoded;
-        next()
+        next();
     })
 }
-async function run () {
+async function run() {
     try {
         const serviceCollection = client.db('superkitch').collection('services')
         const reviewCollection = client.db('superkitch').collection('reviews')
-        
+
 
         //Create Reviews 
-        app.post('/reviews', async(req, res) => {
+        app.post('/reviews', verifyJWT, async (req, res) => {
             const review = req.body;
             const result = await reviewCollection.insertOne(review)
             res.send(result);
         })
 
         //Add New Service
-        app.post('/services', async(req, res) => {
+        app.post('/services', verifyJWT, async (req, res) => {
             const service = req.body;
             const result = await serviceCollection.insertOne(service)
             res.send(result)
@@ -55,20 +55,20 @@ async function run () {
         //JWT Token
         app.post('/jwt', (req, res) => {
             const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '7d'})
-            res.send(token)
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' })
+            res.send({ token })
         })
 
         //Get Single Data for Update Review
-        app.get('/reviews/:id', async(req, res) => {
+        app.get('/reviews/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)}
+            const query = { _id: ObjectId(id) }
             const review = await reviewCollection.findOne(query)
             res.send(review)
         })
 
         //Get All Services To Display Data
-        app.get('/services', async(req, res) => {
+        app.get('/services', async (req, res) => {
             const query = {}
             const cursor = serviceCollection.find(query)
             const services = await cursor.toArray()
@@ -76,7 +76,7 @@ async function run () {
         })
 
         //Get 3 Data For Display On Home Page
-        app.get('/homeservices', async(req, res) => {
+        app.get('/homeservices', async (req, res) => {
             const query = {}
             const cursor = serviceCollection.find(query)
             const services = await cursor.limit(3).toArray()
@@ -84,15 +84,15 @@ async function run () {
         })
 
         //Review Get By Email Query
-        app.get('/myreviews', verifyJWT, async(req, res) => {
+        app.get('/myreviews', async (req, res) => {
 
-            const decoded = req.decoded;
-            if(decoded.email !== req.query.email) {
-                res.status(403).send({message: 'unauthorized access'})
-            }
+            // const decoded = req.decoded;
 
+            // if (decoded.email !== req.query.email) {
+            //     res.status(403).send({ message: 'unauthorized access' })
+            // }
             let query = {};
-            if(req.query.email) {
+            if (req.query.email) {
                 query = {
                     email: req.query.email
                 }
@@ -103,18 +103,18 @@ async function run () {
         })
 
         //Get Single Data of services
-        app.get('/service/:id', async(req, res) => {
+        app.get('/service/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)}
+            const query = { _id: ObjectId(id) }
             const service = await serviceCollection.findOne(query)
             res.send(service)
         })
 
         //Update User Review
-        app.patch('/myreviews/:id', async(req, res) => {
+        app.patch('/myreviews/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const review = req.body;
-            const query = {_id: ObjectId(id)}
+            const query = { _id: ObjectId(id) }
             const updatedDoc = {
                 $set: {
                     message: review.message
@@ -125,30 +125,31 @@ async function run () {
         })
 
         //Delete Review
-        app.delete('/reviews/:id', async(req, res) => {
+        app.delete('/reviews/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)}
+            const query = { _id: ObjectId(id) }
             const result = await reviewCollection.deleteOne(query)
             res.send(result)
         })
 
         //Get Review Data Into Individual Services
-        app.get('/reviews', async(req, res) => {
+        app.get('/reviews', async (req, res) => {
             let query = {};
-            if(req.query.serviceid) {
+            if (req.query.serviceid) {
                 query = {
                     serviceid: req.query.serviceid
                 }
             }
-            const cursor = reviewCollection.find(query)
+            const date = query.date;
+            const cursor = reviewCollection.find(query).sort({date: -1})
             const reviews = await cursor.toArray()
             res.send(reviews)
         })
 
         //Get Review Data Into Individual Services(Use Effects)
-        app.get('/allreviews', async(req, res) => {
+        app.get('/allreviews', async (req, res) => {
             const query = {}
-            if(req.query.serviceid) {
+            if (req.query.serviceid) {
                 query = {
                     serviceid: req.query.serviceid
                 }
@@ -158,7 +159,7 @@ async function run () {
             res.send(reviews);
         })
     }
-    finally{
+    finally {
 
     }
 }
