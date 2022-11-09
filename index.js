@@ -79,7 +79,7 @@ async function run() {
         //Get 3 Data For Display On Home Page
         app.get('/homeservices', async (req, res) => {
             const query = {}
-            const cursor = serviceCollection.find(query).sort({_id: -1})
+            const cursor = serviceCollection.find(query).sort({ _id: -1 })
             const services = await cursor.limit(3).toArray()
             res.send(services)
         })
@@ -88,8 +88,8 @@ async function run() {
         app.get('/myreviews', verifyJWT, async (req, res) => {
 
             const decoded = req.decoded;
-            if(decoded.email !== req.query.email) {
-                res.status(403).send({message: 'unauthorized access'})
+            if (decoded.email !== req.query.email) {
+                res.status(403).send({ message: 'unauthorized access' })
             }
 
             let query = {};
@@ -112,13 +112,15 @@ async function run() {
         })
 
         //Update User Review
-        app.patch('/myreviews/:id', verifyJWT, async (req, res) => {
+        app.patch('/myreviews/:id', async (req, res) => {
             const id = req.params.id;
             const review = req.body;
             const query = { _id: ObjectId(id) }
             const updatedDoc = {
                 $set: {
-                    message: review.message
+                    message: review.message,
+                    ratingComment: review.ratingComment,
+                    rating: review.rating
                 }
             }
             const result = await reviewCollection.updateOne(query, updatedDoc)
